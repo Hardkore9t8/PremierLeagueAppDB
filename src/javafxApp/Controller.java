@@ -41,6 +41,7 @@ public class Controller implements Initializable {
     @FXML
     private TableColumn<Table, Integer> col_points;
 
+// create array to hold table objects
     ObservableList<Table> oblist = FXCollections.observableArrayList();
     @Override
     public void initialize(URL location, ResourceBundle resources) {
