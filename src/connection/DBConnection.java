@@ -5,6 +5,7 @@ import java.sql.SQLException;
 
 public class DBConnection {
 
+    //database connection
     public static java.sql.Connection connection;
     public static DBConnection getConnection(){
         String dbName ="PLeagueDB";

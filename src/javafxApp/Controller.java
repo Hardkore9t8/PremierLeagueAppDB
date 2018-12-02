@@ -10,14 +10,13 @@ import javafx.scene.control.*;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ResourceBundle;
-
+//this is the controller class for the fxml
 public class Controller implements Initializable {
 
     public TextField teamtextfield;
@@ -48,6 +47,7 @@ public class Controller implements Initializable {
         try {
         Connection con = (Connection) DBConnection.getConnection();
 
+//sql statement to query the database and return data to Table view container
             ResultSet rs = con.createStatement().executeQuery("SELECT team,name,age,fpl_points,position FROM PLEAGUEDB");
             while(rs.next()){
                 oblist.add(new Table(rs.getString("team"),rs.getString("name"),rs.getString("position")
@@ -56,7 +56,7 @@ public class Controller implements Initializable {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+//setting location for data values for the Table.
         col_team.setCellValueFactory(new PropertyValueFactory<>("team"));
         col_name.setCellValueFactory(new PropertyValueFactory<>("name"));
         col_age.setCellValueFactory(new PropertyValueFactory<>("age"));

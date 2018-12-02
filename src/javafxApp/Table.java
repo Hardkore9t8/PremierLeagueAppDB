@@ -1,11 +1,16 @@
 package javafxApp;
 
+/**
+ * This class holds the data retrieved from the database. These objects are then placed in an array that
+ * is used to populate the TableView container on the gui.
+ */
 public class Table {
+
     String team, name, position;
     int age, fpl_points;
 
 
-
+    // class constructor that takes the table column as arguments
     public Table(String team, String name, String position, int age, int points) {
         this.team = team;
         this.name = name;
@@ -13,7 +18,9 @@ public class Table {
         this.age = age;
         this.fpl_points = points;
 
+    // getter and setter methods
     }
+
     public String getTeam() {
         return team;
     }
