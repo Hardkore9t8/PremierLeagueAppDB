@@ -10,12 +10,15 @@ import javafx.scene.control.*;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import org.apache.derby.client.am.SqlException;
+
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ResourceBundle;
+
 //this is the controller class for the fxml
 public class Controller implements Initializable {
 
@@ -28,54 +31,100 @@ public class Controller implements Initializable {
     public Button teambutton;
     public Button playerbutton;
 
+
     @FXML
-    private TableView<Table> table;
+    private TableView TeamTable;
     @FXML
-    private TableColumn<Table, String> col_team;
+    private TableColumn<TableTeam, String> col_team;
     @FXML
-    private TableColumn<Table, String> col_name;
+    private TableColumn<TableTeam, String> col_name;
     @FXML
-    private TableColumn<Table, Integer> col_age;
+    private TableColumn<TableTeam, Integer> col_age;
     @FXML
-    private TableColumn<Table, String> col_position;
+    private TableColumn<TableTeam, String> col_position;
     @FXML
-    private TableColumn<Table, Integer> col_points;
+    private TableColumn<TableTeam, Integer> col_points;
+    @FXML
+    private TableColumn<TableTeam, String> col_country;
 
 // create array to hold table objects
-    ObservableList<Table> oblist = FXCollections.observableArrayList();
+
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        try {
-        Connection con = (Connection) DBConnection.getConnection();
+        DBConnection.getConnection();
+        Connection con = DBConnection.connection;
 
-//sql statement to query the database and return data to Table view container
-            ResultSet rs = con.createStatement().executeQuery("SELECT team,name,age,fpl_points,position FROM PLEAGUEDB");
-            while(rs.next()){
-                oblist.add(new Table(rs.getString("team"),rs.getString("name"),rs.getString("position")
-                        ,rs.getInt("age"),rs.getInt("fpl_points")));
-            }
-        } catch (SQLException e) {
+        //ObservableList<TableTeam> oblist = FXCollections.observableArrayList();
+        try {
+            //oblist = DBConnection.getAllRecords();
+
+            //System.out.println(oblist.size());
+            //System.out.println(oblist.get(0).getName());
+            //System.out.println(oblist.get(1).getName());
+            //System.out.println(oblist.get(2).getName());
+            //col_team.
+            //ResultSet rs = con.createStatement().executeQuery("SELECT * FROM TEAM");
+            //ResultSet rs = DBConnection.sqlQuery("SELECT * FROM TEAM");
+
+            //setting location for data values for the Table.
+            col_team.setCellValueFactory(cellData -> cellData.getValue().getTeamName());
+            col_name.setCellValueFactory(cellData -> cellData.getValue().getPlayerName());
+            col_age.setCellValueFactory(cellData -> cellData.getValue().getPlayerAge().asObject());
+            col_points.setCellValueFactory(cellData -> cellData.getValue().getPlayerPoints().asObject());
+            col_position.setCellValueFactory(cellData -> cellData.getValue().getPlayerPosition());
+            col_country.setCellValueFactory(cellData -> cellData.getValue().getPlayerCountry());
+
+            ObservableList<TableTeam> teamList = DBConnection.getAllRecords();
+            populateTableList(teamList);
+
+
+
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SqlException e) {
             e.printStackTrace();
         }
-//setting location for data values for the Table.
-        col_team.setCellValueFactory(new PropertyValueFactory<>("team"));
-        col_name.setCellValueFactory(new PropertyValueFactory<>("name"));
-        col_age.setCellValueFactory(new PropertyValueFactory<>("age"));
-        col_points.setCellValueFactory(new PropertyValueFactory<>("points"));
-        col_position.setCellValueFactory(new PropertyValueFactory<>("position"));
 
-        table.setItems(oblist);
+    }
 
-
+    private void populateTableList(ObservableList<TableTeam> teamList) {
+        TeamTable.setItems(teamList);
     }
 
 
     public void teambutton(ActionEvent actionEvent) throws SQLException {
+        TeamTable.getItems().clear();
+        String team = teamtextfield.getText();
 
+        String sqlStr = "Select * From Team Where Team = '"+team+"' Order By name";
+        try {
+
+            ObservableList<TableTeam> teamList = DBConnection.getSelectedRecords(sqlStr);
+            populateTableList(teamList);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SqlException e) {
+            e.printStackTrace();
+        }
     }
-
+    //
     public void playerbutton(ActionEvent actionEvent) {
-        col_team.setText(playertextfield.getText());
+        TeamTable.getItems().clear();
+        String player = playertextfield.getText();
+
+        String sqlStr = "Select * From Team Where Name = '"+player+"'";
+        try {
+
+            ObservableList<TableTeam> teamList = DBConnection.getSelectedRecords(sqlStr);
+            populateTableList(teamList);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SqlException e) {
+            e.printStackTrace();
+        }
+
 
     }
 

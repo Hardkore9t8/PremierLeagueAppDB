@@ -1,31 +1,130 @@
 package connection;
 
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafxApp.TableTeam;
+import org.apache.derby.client.am.SqlException;
+
+import java.sql.*;
 
 public class DBConnection {
 
     //database connection
     public static java.sql.Connection connection;
-    public static DBConnection getConnection(){
-        String dbName ="PLeagueDB";
+    private static Statement stmt = null;
+
+
+    public static void getConnection() {
+        String dbName = "PLeagueDB";
         String userName = "root";
         String password = "";
-
+        String db_URL = "jdbc:derby:PLeagueDB;create=true";
+        //String db_URL = "jdbc:derby:PLeagueDB";
         try {
-            Class.forName("com.mysql.jdbc.Driver");
-
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
             try {
-                connection = DriverManager.getConnection("jdbc:mysql://localhost/"+dbName,userName,password);
+                connection = DriverManager.getConnection(db_URL);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
 
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
         }
 
-        return null;
+        setupTeamTable();
+    }
+
+    static void setupTeamTable() {
+        String tableName = "TEAM";
+
+        try {
+            stmt = connection.createStatement();
+            DatabaseMetaData dbm = connection.getMetaData();
+            ResultSet tables = dbm.getTables(null, null, tableName.toUpperCase(), null);
+            if (tables.next()) {
+                //System.out.println(("Table exist"));
+            } else {
+                System.out.println(("Table does not exist"));
+                stmt.execute("Create Table Team ( "
+                        + "id int primary key, team varchar(20), name varchar(50), age int, points int, position varchar(20), "
+                        + "country varchar(50))");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error creating table..");
+            e.printStackTrace();
+        }
+        if (sqlInsert("Insert INTO Team (id, team, name, age, points, position, country) Values(2, 'Arsenal', 'Lacazette', 26, 15, 'Forward', 'France')"))
+            System.out.println("Record inserted..");
+        else
+            System.out.println("Record not inserted..");
+    }
+
+    public static ResultSet sqlQuery(String sqlStr) {
+        System.out.println(sqlStr);
+        ResultSet rs;
+        try {
+            stmt = connection.createStatement();
+            rs = stmt.executeQuery(sqlStr);
+
+        } catch (SQLException ex) {
+            return null;
+        }
+        return rs;
+    }
+
+    public static boolean sqlInsert(String sqlStr) {
+        try {
+            stmt = connection.createStatement();
+            stmt.execute(sqlStr);
+            return true;
+        } catch (SQLException ex) {
+            System.out.println(sqlStr);
+            System.out.println(ex.getMessage());
+            return false;
+        }
 
     }
+
+    public static ObservableList<TableTeam> getSelectedRecords(String sqlStr) throws ClassNotFoundException, SqlException {
+        ResultSet rs = sqlQuery(sqlStr);
+        ObservableList<TableTeam> teamList = getTeamObjects(rs);
+        return teamList;
+    }
+
+    public static ObservableList<TableTeam> getAllRecords() throws ClassNotFoundException, SqlException {
+        String sql = "Select * From Team";
+        ResultSet rs = sqlQuery(sql);
+        ObservableList<TableTeam> teamList = getTeamObjects(rs);
+        return teamList;
+    }
+
+    private static ObservableList<TableTeam> getTeamObjects(ResultSet rs) throws ClassNotFoundException, SqlException {
+        ObservableList<TableTeam> teamList = FXCollections.observableArrayList();
+
+        try {
+            while (rs.next()) {
+                TableTeam team = new TableTeam();
+                team.setId(rs.getInt("id"));
+                team.setTeam(rs.getString("Team"));
+                team.setName(rs.getString("Name"));
+                team.setAge(rs.getInt("Age"));
+                team.setPoints(rs.getInt("points"));
+                team.setPosition(rs.getString("position"));
+                team.setCountry(rs.getString("Country"));
+                teamList.add(team);
+            }
+
+        } catch (SQLException ex) {
+            System.out.println("SQL Exception: " + ex.getMessage());
+        }
+        return teamList;
+    }
+
+
 }
